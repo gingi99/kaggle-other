@@ -1,0 +1,47 @@
+---
+title: "First"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(rhdf5)
+library(glmnet)
+source("/home/m.ooki/contest/kaggle/two_sigma/read_hdf.R")
+```
+
+## Read Data
+
+```{r}
+FILENAME = "/mnt/data/opendata/kaggle/two_sigma/train/train.h5"
+train = read_hdf(FILENAME)
+```
+
+## Data Check
+```{r}
+str(train)
+```
+
+
+## Data Cleansing
+
+```{r}
+train$timestamp = as.numeric(train$timestamp)
+
+# Matrix X and y
+X = as.matrix(train[2:(ncol(train)-1)])
+y = as.matrix(train[ncol(train)])
+
+# NaN to 0
+X[is.nan(X)] = 0
+```
+
+## glmnet
+
+```{r}
+fit = glmnet(x=X, y=y, family="gaussian", alpha=0)
+fit = cv.glmnet(x=X,y=y,family="gaussian",nfold = 5, alpha = 1)
+
+plot(fit)
+
+y.pred = predict(fit, X, s=fit$lambda.min)
+```
